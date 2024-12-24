@@ -17,7 +17,7 @@ var resilience = new Resilience(100, TimeSpan.FromMilliseconds(50), 10)
 
 Task<int> Job()
 {
-    var rng = Random.Shared.Next(1, 100);
+    var rng = Random.Shared.Next(0, 100);
     if (rng > 1) throw new Exception($"{rng}");
     return Task.FromResult(rng);
 }
@@ -26,11 +26,20 @@ var result = await resilience.Tryhard(Job);
 ```
 
 ### Timeout and cancellation
-CancellationToken are supported and can be used to set a time limit.
+CancellationToken are supported and can be used to set a time limit.  
+Result inherits the type when writing the task inline.
 ```cs
-var cts = new CancellationTokenSource();
-cts.CancelAfter(1000);
-var resilience = new Resilience(100, TimeSpan.FromMilliseconds(50), 10, cts.Token)
+using var cts = new CancellationTokenSource();
+cts.CancelAfter(10000);
+var resilience = new Resilience(-1, ct: cts.Token);
+
+var result = await resilience.Tryhard(() => Task.Run(async () =>
+{
+    await Task.Delay(500);
+    var rng = Random.Shared.Next(0, 100);
+    if (rng > 1) throw new Exception($"{rng}");
+    return rng;
+}));
 ```
 
 ### Why

@@ -1,18 +1,16 @@
 ﻿using AotResilience;
 
-var cts = new CancellationTokenSource();
-cts.CancelAfter(1000);
-var resilience = new Resilience(100, TimeSpan.FromMilliseconds(50), 10, cts.Token)
-{
-    ExceptionAction = (i, exception) => Console.WriteLine($"{i} : {exception.Message}")
-};
+using var cts = new CancellationTokenSource();
+cts.CancelAfter(10000);
 
-Task<int> Job()
+var resilience = new Resilience(-1, ct: cts.Token);
+var result = await resilience.Tryhard(() => Task.Run(async () =>
 {
-    var rng = Random.Shared.Next(1, 100);
+    await Task.Delay(500);
+    var rng = Random.Shared.Next(0, 100);
+    Console.WriteLine(rng);
     if (rng > 1) throw new Exception($"{rng}");
-    return Task.FromResult(rng);
-}
+    return rng;
+}));
 
-var result = await resilience.Tryhard(Job);
 Console.WriteLine($"result = {result}");
