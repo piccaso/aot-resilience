@@ -1,6 +1,8 @@
 ﻿using AotResilience;
 
-var resilience = new Resilience(100, TimeSpan.FromMilliseconds(50), 10)
+var cts = new CancellationTokenSource();
+cts.CancelAfter(1000);
+var resilience = new Resilience(100, TimeSpan.FromMilliseconds(50), 10, cts.Token)
 {
     ExceptionAction = (i, exception) => Console.WriteLine($"{i} : {exception.Message}")
 };
