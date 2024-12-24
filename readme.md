@@ -25,5 +25,18 @@ Task<int> Job()
 var result = await resilience.Tryhard(Job);
 ```
 
+### Timeout and cancellation
+CancellationToken are supported and can be used to set a time limit.
+```cs
+var cts = new CancellationTokenSource();
+cts.CancelAfter(1000);
+var resilience = new Resilience(100, TimeSpan.FromMilliseconds(50), 10, cts.Token)
+```
+
+### Why
+The deprecation of [Microsoft.Extensions.Http.Polly](https://www.nuget.org/packages/Microsoft.Extensions.Http.Polly) is giving me [left-pad](https://en.wikipedia.org/wiki/Npm_left-pad_incident) vibes so I'm doing my own thing.  
+With the age of the cloud came the age of unrealiable services, and I dont want to contribute to the cascading failure.  
+Also the similarity with a perk in DBD is a coincidence and I'm not calling anyone a tryhard.
+
 ### License
 MIT

@@ -23,27 +23,6 @@ namespace AotResilience
             _ct = ct;
         }
 
-        public async Task Tryhard(Func<Task> fn)
-        {
-            while (!_ct.IsCancellationRequested)
-            {
-                try
-                {
-                    var task = fn();
-                    await task;
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    _failCount++;
-                    ExceptionAction?.Invoke(_failCount, ex);
-                    if (_failCount >= _limit) throw;
-                }
-
-                if (_delay.HasValue && _failCount >= _delayAfter) await Task.Delay(_delay.Value);
-            }
-        }
-
         public async Task<T> Tryhard<T>(Func<Task<T>> fn)
         {
             while (!_ct.IsCancellationRequested)
@@ -60,7 +39,7 @@ namespace AotResilience
                     if (_failCount >= _limit) throw;
                 }
 
-                if (_delay.HasValue && _failCount >= _delayAfter) await Task.Delay(_delay.Value);
+                if (_delay.HasValue && _failCount >= _delayAfter) await Task.Delay(_delay.Value, _ct);
             }
 
             throw new OperationCanceledException(_ct);
