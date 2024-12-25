@@ -1,16 +1,9 @@
 ﻿using AotResilience;
 
-using var cts = new CancellationTokenSource();
-cts.CancelAfter(10000);
+var resilience = new Resilience(5);
+var client = new HttpClient();
+resilience.ExceptionAction = (i,ex) => Console.WriteLine($"{i}: {ex.Message}");
 
-var resilience = new Resilience(-1, ct: cts.Token);
-var result = await resilience.Tryhard(() => Task.Run(async () =>
-{
-    await Task.Delay(500);
-    var rng = Random.Shared.Next(0, 100);
-    Console.WriteLine(rng);
-    if (rng > 1) throw new Exception($"{rng}");
-    return rng;
-}));
+var result = await resilience.Tryhard(async () => await client.GetStringAsync("https://httpbin.io/unstable"));
 
-Console.WriteLine($"result = {result}");
+Console.WriteLine($"result = {result.Length}");
